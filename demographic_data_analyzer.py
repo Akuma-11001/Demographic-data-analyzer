@@ -1,44 +1,81 @@
+#Demographic-Data-Analyzer
+
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
+
+
+
+
+#import data
+df = pd.read_csv("https://raw.githubusercontent.com/freeCodeCamp/boilerplate-demographic-data-analyzer/refs/heads/main/adult.data.csv")
 
 
 def calculate_demographic_data(print_data=True):
-    # Read data from file
-    df = None
+    race_count = df.groupby(df["race"]).size()
 
-    # How many of each race are represented in this dataset? This should be a Pandas series with race names as the index labels.
-    race_count = None
+    men = df.loc[:,("sex", "age")]
+    men = men[men["sex"] == "Male"]
+    average_age_men = men["age"].mean()
+    average_age_men = average_age_men.astype(int)
 
-    # What is the average age of men?
-    average_age_men = None
 
-    # What is the percentage of people who have a Bachelor's degree?
-    percentage_bachelors = None
+    bachelors = df["education"]
+    percentage_bachelors = (bachelors[(bachelors == "Bachelors")].count()) / bachelors.count()
+    percentage_bachelors = round(percentage_bachelors *100, 2)
 
-    # What percentage of people with advanced education (`Bachelors`, `Masters`, or `Doctorate`) make more than 50K?
-    # What percentage of people without advanced education make more than 50K?
 
-    # with and without `Bachelors`, `Masters`, or `Doctorate`
-    higher_education = None
-    lower_education = None
+    education = df.loc[:,("education","salary")]
+    adv_education = education[(education["education"] == "Bachelors") | (education["education"] == "Masters") | (education["education"] == "Doctorate")]
+    no_adv_education = education[~((education["education"] == "Bachelors") | (education["education"] == "Masters") | (education["education"] == "Doctorate"))]
 
-    # percentage with salary >50K
-    higher_education_rich = None
-    lower_education_rich = None
+    higher_education = adv_education.count()
+    higher_education = higher_education["education"]
+    lower_education = no_adv_education.count()
+    lower_education = lower_education["education"]
 
-    # What is the minimum number of hours a person works per week (hours-per-week feature)?
-    min_work_hours = None
 
-    # What percentage of the people who work the minimum number of hours per week have a salary of >50K?
-    num_min_workers = None
+    over_adv_education = adv_education[(adv_education["salary"] == ">50K")]
+    over_no_adv_education = no_adv_education[(no_adv_education["salary"] == ">50K")]
 
-    rich_percentage = None
+    higher_education_rich = (over_adv_education.count() / adv_education.count())*100
+    higher_education_rich = round(higher_education_rich["education"], 2)
+    lower_education_rich = round((over_no_adv_education.count() / no_adv_education.count())*100, 2)
+    lower_education_rich = lower_education_rich["education"]
 
-    # What country has the highest percentage of people that earn >50K?
-    highest_earning_country = None
-    highest_earning_country_percentage = None
 
-    # Identify the most popular occupation for those who earn >50K in India.
-    top_IN_occupation = None
+    hours_per_week = df["hours-per-week"]
+    minimum_hours =  hours_per_week.min()
+
+
+    workers = df.loc[:, ["hours-per-week","salary"]]
+    rich_workers = workers[workers["salary"] == ">50K"]
+    num_min_workers = len(rich_workers)
+
+
+    rich_percentage = round(num_min_workers / len(workers)*100, 2)
+
+
+    country = df.loc[:, ["native-country", "salary"]]
+    country = country[country["native-country"] != "?"]
+    country = country[country["salary"] == ">50K"]
+    country2 = country[country["native-country"] == "United-States"]
+    us_amount = len(country2)
+    highest_earning_country = country.describe()
+    highest_earning_country_percentage = (us_amount / num_min_workers)*100
+    highest_earning_country_percentage = round(highest_earning_country_percentage, 2)
+
+    india = df.loc[:, ["occupation","native-country", "salary"]]
+    india = india[india["native-country"] != "?"]
+    india = india[india["salary"] == ">50K"]
+    india = india[india["native-country"] == "India"]
+    occupations = india["occupation"].value_counts()
+
+    top_occupation_count = occupations.max()
+    top_occupation_name = occupations.idxmax()
+
+    top_IN_occupation = f"{top_occupation_name}: {top_occupation_count}"
 
     # DO NOT MODIFY BELOW THIS LINE
 
